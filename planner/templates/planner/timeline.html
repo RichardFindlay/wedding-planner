@@ -1,0 +1,50 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Timeline{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">the road to {{ wedding.wedding_date|date:"j F" }}</span>
+    <h1>📅 Timeline</h1>
+    <p>What to sort when. Tasks with due dates show up under the right season automatically.</p>
+  </div>
+</header>
+
+<div class="phases">
+  {% for p in phases %}
+    <section class="phase {% if p.is_now %}now{% elif p.is_past %}past{% endif %}">
+      <div class="when">
+        {% if p.is_now %}<span class="here">you are here</span>{% endif %}
+        <h2>{{ p.label }}</h2>
+        <small>{% if p.items %}{{ p.done }} of {{ p.items|length }} done{% else %}&nbsp;{% endif %}</small>
+      </div>
+      <span class="dot" aria-hidden="true"></span>
+      <div class="card">
+        <ul class="checklist">
+          {% for item in p.items %}
+            <li id="timeline-{{ item.pk }}">
+              {% edit item "done" cls="burst-on-check" %}
+              {% edit item "title" %}
+              <button class="icon-btn" hx-post="{% url 'delete' 'timeline' item.pk %}" hx-target="closest li" hx-swap="delete" hx-confirm="Remove “{{ item.title }}”?" aria-label="Remove">×</button>
+            </li>
+          {% endfor %}
+        </ul>
+        <form class="inline-add" hx-post="{% url 'create' 'timeline' %}" hx-swap="none" style="margin-top:8px">
+          <input type="hidden" name="phase" value="{{ p.key }}">
+          <input type="hidden" name="_hidden" value="phase">
+          <input name="title" placeholder="+ add a milestone" aria-label="Add a milestone to {{ p.label }}" required>
+        </form>
+        {% if p.tasks %}
+          <div class="phase-tasks">
+            <span class="label">Tasks due</span>
+            {% for t in p.tasks %}
+              <a class="pill {{ t.status|status_class }}" href="{% url 'tasks' %}?show=all&open=task:{{ t.pk }}" title="Due {{ t.due_date|date:'j M' }}">{{ t.title|truncatechars:38 }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  {% endfor %}
+  <div class="phase-last"><span class="script">{{ wedding.wedding_date|date:"j F Y" }} — we get married 💍</span></div>
+</div>
+{% endblock %}

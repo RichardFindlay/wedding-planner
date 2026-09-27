@@ -1,0 +1,4 @@
+{% load planner_tags %}
+{% for r in rows %}{% if r.category.pk == obj.pk %}<template><td class="num" colspan="2" id="bc-{{ r.category.pk }}-sub" hx-swap-oob="true" style="font-family:var(--f-body);font-size:13px">{% include "planner/partials/budget_cat_sub.html" %}</td></template>{% endif %}{% endfor %}
+{% include "planner/partials/budget_summary.html" %}
+{% include "planner/partials/budget_cats.html" %}

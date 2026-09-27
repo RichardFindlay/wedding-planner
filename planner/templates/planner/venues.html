@@ -1,0 +1,84 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Venues{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">where it all happens</span>
+    <h1>🏠 Venues</h1>
+    <p>Drag cards between columns as things move along. Open a venue to see its full enquiry history.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'venue' %}" hx-target="#drawer-body">+ Add venue</button>
+  </div>
+</header>
+
+<div class="filters">
+  <div class="seg">
+    <a href="?view=board{% if role %}&role={{ role }}{% endif %}" class="{% if view == 'board' %}on{% endif %}">Board</a>
+    <a href="?view=compare{% if role %}&role={{ role }}{% endif %}" class="{% if view == 'compare' %}on{% endif %}">Compare</a>
+  </div>
+  <a class="chip {% if not role %}on{% endif %}" href="?view={{ view }}">All</a>
+  <a class="chip {% if role == 'Ceremony' %}on{% endif %}" href="?view={{ view }}&role=Ceremony">🌲 Ceremony</a>
+  <a class="chip {% if role == 'Reception' %}on{% endif %}" href="?view={{ view }}&role=Reception">🍽️ Reception</a>
+</div>
+
+{% if view == "compare" %}
+  {% if venues %}
+  <div class="table-wrap">
+    <table class="sheet compare">
+      <thead>
+        <tr>
+          <th></th>
+          {% for v in venues %}<th><a class="h" href="{{ v.get_absolute_url }}">{{ v.name }}</a><div class="role-tag">{{ v.role }}</div></th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="label">Status</td>{% for v in venues %}<td>{% edit v "status" %}</td>{% endfor %}</tr>
+        <tr><td class="label">29 May available?</td>{% for v in venues %}<td>{% edit v "availability" %}</td>{% endfor %}</tr>
+        <tr><td class="label">Price</td>{% for v in venues %}<td>{% include "planner/partials/price_line.html" with est=v.price_estimate quote=v.price_quote %}</td>{% endfor %}</tr>
+        <tr><td class="label">Capacity</td>{% for v in venues %}<td>{% edit v "capacity" placeholder="?" %}</td>{% endfor %}</tr>
+        <tr><td class="label">BYOB</td>{% for v in venues %}<td>{% edit v "byob" %}</td>{% endfor %}</tr>
+        <tr><td class="label">Catering rules</td>{% for v in venues %}<td>{% edit v "catering" rows=2 placeholder="?" %}</td>{% endfor %}</tr>
+        <tr><td class="label">Closing time</td>{% for v in venues %}<td>{% edit v "closing_time" placeholder="?" %}</td>{% endfor %}</tr>
+        <tr><td class="label">From Perth</td>{% for v in venues %}<td>{% edit v "distance_from_perth" placeholder="?" %}</td>{% endfor %}</tr>
+        <tr><td class="label">From ceremony</td>{% for v in venues %}<td>{% edit v "distance_from_ceremony" placeholder="?" %}</td>{% endfor %}</tr>
+        <tr><td class="label">Outdoor space</td>{% for v in venues %}<td>{% edit v "outdoor_space" %}</td>{% endfor %}</tr>
+        <tr><td class="label">Rain backup</td>{% for v in venues %}<td>{% edit v "rain_backup" %}</td>{% endfor %}</tr>
+        <tr><td class="label">Accommodation</td>{% for v in venues %}<td>{% edit v "accommodation" %}</td>{% endfor %}</tr>
+        <tr><td class="label">Our rating</td>{% for v in venues %}<td>{% edit v "rating" %}</td>{% endfor %}</tr>
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty"><span class="script">No venues yet</span>Add one to start comparing.</div>
+  {% endif %}
+{% else %}
+  <div class="board" data-refresh-on-save>
+    {% for lane in lanes %}
+      <section class="lane {% if lane.drop_status == 'Rejected' %}rejected{% endif %}">
+        <h3>{{ lane.name }} <span class="n">{{ lane.venues|length }}</span></h3>
+        <div class="lane-body" data-lane="{{ lane.drop_status }}">
+          {% for v in lane.venues %}
+            <article class="venue-card" data-field-url="{% url 'field_update' 'venue' v.pk %}">
+              {% if wedding.ceremony_venue_id == v.pk %}<span class="chosen">our ceremony</span>{% elif wedding.reception_venue_id == v.pk %}<span class="chosen">our reception</span>{% endif %}
+              <span class="role-tag">{{ v.role }} · {{ v.venue_type }}</span>
+              <h4><a href="{{ v.get_absolute_url }}">{{ v.name }}</a></h4>
+              {% if v.location %}<div class="loc">📍 {{ v.location }}</div>{% endif %}
+              <div class="price">{% include "planner/partials/price_line.html" with est=v.price_estimate quote=v.price_quote %}</div>
+              <div class="row" style="gap:6px">
+                {% edit v "status" %}
+                <span class="pill {{ v.availability|status_class }}" title="Availability for our date">📅 {{ v.availability }}</span>
+              </div>
+              <div class="row small" style="justify-content:space-between">
+                {% if v.next_follow_up %}<span class="{% if v.follow_up_due %}follow{% else %}faint{% endif %}">{% if v.follow_up_due %}⏰ Chase {% else %}Follow up {% endif %}{{ v.next_follow_up|naturalday:"j M" }}</span>{% else %}<span></span>{% endif %}
+                {% if v.rating %}<span class="hearts-static" title="Our rating">{{ v.get_rating_display }}</span>{% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

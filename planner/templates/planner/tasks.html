@@ -1,0 +1,91 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Tasks{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">things to do</span>
+    <h1>✅ Tasks</h1>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'task' %}" hx-target="#drawer-body">+ Add task</button>
+  </div>
+</header>
+
+<div class="grid" style="grid-template-columns:minmax(0,1fr) auto;align-items:center;margin-bottom:18px">
+  <form class="filters" method="get" style="margin:0">
+    <div class="seg">
+      <a href="?show=open" class="{% if show == 'open' %}on{% endif %}">To do</a>
+      <a href="?show=done" class="{% if show == 'done' %}on{% endif %}">Done</a>
+      <a href="?show=all" class="{% if show == 'all' %}on{% endif %}">All</a>
+    </div>
+    <input type="hidden" name="show" value="{{ show }}">
+    <select name="owner" onchange="this.form.submit()" aria-label="Owner">
+      <option value="">Anyone</option>
+      {% for k, v in owner_choices %}<option value="{{ k }}" {% if filters.owner == k %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <select name="category" onchange="this.form.submit()" aria-label="Category">
+      <option value="">All categories</option>
+      {% for k, v in category_choices %}<option value="{{ k }}" {% if filters.category == k %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <select name="priority" onchange="this.form.submit()" aria-label="Priority">
+      <option value="">Any priority</option>
+      {% for k, v in priority_choices %}<option value="{{ k }}" {% if filters.priority == k %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <select name="sort" onchange="this.form.submit()" aria-label="Sort by">
+      {% for k, v in sorts %}<option value="{{ k }}" {% if sort == k %}selected{% endif %}>Sort: {{ v }}</option>{% endfor %}
+    </select>
+    {% if filters %}<a class="chip" href="?show={{ show }}">Clear filters ×</a>{% endif %}
+  </form>
+  <div class="row small muted" id="task-progress">
+    {% include "planner/partials/task_progress_line.html" %}
+  </div>
+</div>
+
+{% if tasks %}
+<div class="table-wrap">
+  <table class="sheet stackable">
+    <thead>
+      <tr>
+        <th style="width:44px"></th>
+        <th>Task</th>
+        <th>Category</th>
+        <th>Owner</th>
+        <th>Priority</th>
+        <th>Due</th>
+        <th>Status</th>
+        <th style="width:80px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+        <tr class="task-row" id="task-{{ t.pk }}">
+          <td class="tight" id="task-{{ t.pk }}-check">{% include "planner/partials/task_check.html" %}</td>
+          <td class="m-full" style="min-width:240px">
+            {% edit t "title" cls="task-title" %}
+            {% if t.notes %}<div class="small faint" style="padding:0 8px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px">{{ t.notes }}</div>{% endif %}
+          </td>
+          <td data-label="Category">{% edit t "category" %}</td>
+          <td data-label="Owner">{% edit t "owner" %}</td>
+          <td data-label="Priority">{% edit t "priority" %}</td>
+          <td data-label="Due" style="min-width:150px">
+            {% edit t "due_date" %}
+            {% if t.is_overdue %}<div class="overdue" style="padding-left:8px">Overdue</div>{% endif %}
+          </td>
+          <td data-label="Status" id="task-{{ t.pk }}-status">{% edit t "status" %}</td>
+          <td class="tight">
+            <button class="btn btn-sm btn-ghost open-link" hx-get="{% url 'drawer' 'task' t.pk %}" hx-target="#drawer-body" title="Notes & details">Notes</button>
+            {% avatar t.updated_by %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="empty">
+    <span class="script">{% if show == 'done' %}Nothing ticked off yet{% else %}Nothing here!{% endif %}</span>
+    {% if filters %}No tasks match those filters.{% else %}Add something to do and it’ll appear here.{% endif %}
+  </div>
+{% endif %}
+{% endblock %}

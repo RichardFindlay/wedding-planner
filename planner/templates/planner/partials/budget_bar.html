@@ -1,0 +1,13 @@
+{% load planner_tags %}
+<div class="budget-bar {% if b.headroom < 0 %}over{% endif %}" role="img"
+     aria-label="Paid {{ b.totals.paid|money }}, committed {{ b.totals.committed|money }}, planned {{ b.totals.forecast|money }} of {{ b.target|money }}">
+  {% if b.bar.paid %}<span class="seg-fill paid" style="width:{{ b.bar.paid|floatformat:2|cut:',' }}%" title="Paid {{ b.totals.paid|money }}"></span>{% endif %}
+  {% if b.bar.committed %}<span class="seg-fill committed" style="width:{{ b.bar.committed|floatformat:2|cut:',' }}%" title="Booked, not yet paid"></span>{% endif %}
+  {% if b.bar.forecast %}<span class="seg-fill forecast" style="width:{{ b.bar.forecast|floatformat:2|cut:',' }}%" title="Estimates & quotes"></span>{% endif %}
+  {% if b.headroom < 0 %}<span title="Target {{ b.target|money }}" style="position:absolute;top:-5px;bottom:-5px;left:{{ b.bar.target|floatformat:2|cut:',' }}%;border-left:2px solid var(--ink)"></span>{% endif %}
+</div>
+<div class="legend">
+  <span><i class="paid"></i>Paid</span>
+  <span><i class="committed"></i>Booked</span>
+  <span><i class="forecast"></i>Estimates &amp; quotes</span>
+</div>

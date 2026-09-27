@@ -1,0 +1,50 @@
+{% load planner_tags %}
+<div class="drawer-head">
+  <div>
+    <span class="eyebrow">something new</span>
+    <h2>{{ kind.icon }} Add {{ kind.label }}</h2>
+  </div>
+  <button type="button" class="close-x" data-close-drawer aria-label="Close">×</button>
+</div>
+<form class="qa-form" hx-post="{% url 'create' slug %}" hx-target="#drawer-body" hx-encoding="multipart/form-data" style="display:contents">
+  <div class="drawer-body">
+    {% if form.non_field_errors %}<ul class="errorlist" style="margin-bottom:12px">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    <div class="fields">
+      {% for field in form %}
+        {% if field.name in hidden %}
+          {{ field.as_hidden }}<input type="hidden" name="_hidden" value="{{ field.name }}">
+        {% elif field.widget_type == "checkbox" %}
+          <label class="lbl check-lbl wide"><input type="checkbox" class="check" name="{{ field.html_name }}" {% if field.value %}checked{% endif %}> {{ field.label }}</label>
+        {% else %}
+          <label class="lbl {% if field.widget_type == 'textarea' or field.name == 'title' or field.name == 'name' or field.name == 'item' or field.name == 'text' or field.name == 'decision' or field.name == 'link' or field.name == 'website' %}wide{% endif %}">
+            {{ field.label }}
+            {{ field }}
+            {{ field.errors }}
+          </label>
+        {% endif %}
+      {% endfor %}
+      {% if slug == "idea" %}
+        <div class="wide">
+          <label class="upload-drop" data-upload>
+            <input type="file" name="upload" accept="image/*">
+            <span class="txt">📷 Add a photo or screenshot — or just paste one here</span>
+          </label>
+          <img class="upload-preview" alt="">
+        </div>
+      {% endif %}
+      {% if slug == "enquiry" and "venue" not in hidden %}
+        <p class="faint small wide" style="margin:0">Pick the venue <em>or</em> the supplier this is about. Paste their email straight into the details box.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button type="button" class="btn btn-ghost" data-close-drawer>Cancel</button>
+    <button type="submit" class="btn btn-primary">Add {{ kind.label }}</button>
+  </div>
+</form>
+<script>
+  (function () {
+    var first = document.querySelector('#drawer-body .qa-form input:not([type=hidden]), #drawer-body .qa-form textarea');
+    if (first && window.matchMedia('(min-width: 861px)').matches) setTimeout(function () { first.focus(); }, 260);
+  })();
+</script>

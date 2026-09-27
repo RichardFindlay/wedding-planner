@@ -1,0 +1,20 @@
+{% load planner_tags %}
+<div class="card" id="budget-cats" {% if oob %}hx-swap-oob="true"{% endif %}>
+  <div class="card-title"><h3>Where it’s going</h3><span class="small faint">planned vs allowance</span></div>
+  <div class="cat-bars">
+    {% for r in rows %}
+      {% if r.allocated or r.forecast %}
+      <div class="cat-bar {% if r.over %}over{% endif %}">
+        <div class="top">
+          <b>{{ r.category.icon }} {{ r.category.name }}</b>
+          <span class="fig {% if r.over %}over{% endif %}">{{ r.forecast|money }} / {{ r.allocated|money }}</span>
+        </div>
+        <div class="track" title="{{ r.forecast|money }} planned of {{ r.allocated|money }} allowance">
+          <div class="fill" style="width:{% if r.allocated %}{{ r.forecast|pct:r.allocated }}{% else %}100{% endif %}%"></div>
+          {% if r.committed %}<div class="fill committed" style="width:{% if r.allocated %}{{ r.committed|pct:r.allocated }}{% else %}100{% endif %}%"></div>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

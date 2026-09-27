@@ -1,0 +1,1 @@
+{% load planner_tags %}{% if quote is not None %}<span>{{ quote|money }}</span> <span class="conf">Quote</span>{% elif est is not None %}<span>~{{ est|money }}</span> <span class="est">Estimate</span>{% else %}<span class="faint small" style="font-family:var(--f-body)">Price unknown</span>{% endif %}

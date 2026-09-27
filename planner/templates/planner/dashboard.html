@@ -1,0 +1,195 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<section class="hero rise">
+  {% include "planner/partials/landscape.html" %}
+  <span class="kicker">our wedding plan</span>
+  <h1>Richard <span class="amp">&amp;</span> Denver</h1>
+  <div class="sub">A Perthshire adventure</div>
+  <div class="hero-date">
+    <span class="date">{{ wedding.wedding_date|date:"l j F Y" }}</span>
+    {% if wedding.date_confirmed %}<span class="confirmed-stamp">Confirmed</span>{% else %}<span class="provisional">provisional</span>{% endif %}
+  </div>
+  <div class="countdown" title="{{ wedding.days_to_go }} days until {{ wedding.wedding_date|date:'j F Y' }}">
+    <span class="n">{{ wedding.days_to_go|intcomma }}</span>
+    <span class="l">days to go</span>
+  </div>
+</section>
+
+<div class="dash-grid">
+
+  <section class="card span-12 rise rise-1">
+    <div class="card-title">
+      <h2>The day, as it stands</h2>
+      <details style="position:relative">
+        <summary class="btn btn-sm btn-ghost" style="list-style:none">Choose venues</summary>
+        <div class="menu pop-static" style="width:280px;padding:14px;display:grid;gap:12px">
+          {% edit wedding "ceremony_venue" label="Ceremony venue" %}
+          {% edit wedding "reception_venue" label="Reception venue" %}
+          {% edit wedding "wedding_date" label="Wedding date" %}
+          {% edit wedding "date_confirmed" label="Date confirmed by venue" %}
+        </div>
+      </details>
+    </div>
+    <div class="journey">
+      {% for stop in journey %}
+        <div class="stop {% if 'TBC' in stop.title %}tbc{% endif %}">
+          <div class="medallion">{% include "planner/partials/journey_icon.html" with icon=stop.icon %}</div>
+          <div class="t">{% if stop.venue %}<a href="{{ stop.venue.get_absolute_url }}">{{ stop.title }}</a>{% else %}{{ stop.title }}{% endif %}</div>
+          <div class="s">{{ stop.sub }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card span-5 rise rise-2">
+    <div class="card-title">
+      <h2>💷 Budget</h2>
+      <a class="more" href="{% url 'budget' %}">Open budget →</a>
+    </div>
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div>
+        <div class="label">{% for k, v in budget.scenarios %}{% if k == budget.scenario %}{{ v }} scenario target{% endif %}{% endfor %}</div>
+        <div class="big-num">{{ budget.target|money }}</div>
+      </div>
+      <div class="seg" role="group" aria-label="Budget scenario">
+        {% for k, v in budget.scenarios %}
+          <button type="button" class="{% if k == budget.scenario %}on{% endif %}"
+                  hx-post="{% url 'field_update' 'settings' wedding.pk %}" hx-vals='{"_field": "scenario", "scenario": "{{ k }}"}' hx-swap="none">{{ v }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="kv">
+      <div><div class="label">Planned so far</div><div class="v">{{ budget.totals.forecast|money }}</div></div>
+      <div><div class="label">Remaining</div><div class="v {% if budget.headroom < 0 %}neg{% endif %}">{{ budget.headroom|money }}</div></div>
+      <div><div class="label">Committed</div><div class="v">{{ budget.totals.committed|money }}</div></div>
+      <div><div class="label">Spent</div><div class="v">{{ budget.totals.paid|money }}</div></div>
+    </div>
+    {% include "planner/partials/budget_bar.html" with b=budget %}
+    <p class="small faint" style="margin:10px 0 0">“Planned” uses booked costs, then quotes, then our estimates — most of it is still estimates.</p>
+  </section>
+
+  <section class="card span-3 rise rise-2">
+    <div class="card-title">
+      <h2>🌱 Progress</h2>
+      <a class="more" href="{% url 'tasks' %}">Tasks →</a>
+    </div>
+    {% include "planner/partials/donut.html" %}
+  </section>
+
+  <section class="card span-4 rise rise-3">
+    <div class="card-title">
+      <h2>⚖️ Key decisions</h2>
+      <a class="more" href="{% url 'decisions' %}">Log →</a>
+    </div>
+    <div class="decisions-mini">
+      {% for label, value, note in key_decisions %}
+        <div class="d">
+          <span class="label">{{ label }}</span>
+          <div><div class="v {% if value == 'TBC' %}tbc{% endif %}">{{ value }}</div><small>{{ note }}</small></div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card span-7 rise rise-3">
+    <div class="card-title">
+      <h2>✨ Upcoming priorities</h2>
+      <a class="more" href="{% url 'tasks' %}">All tasks →</a>
+    </div>
+    {% if priorities %}
+      <ol class="priority-list">
+        {% for t in priorities %}
+          <li>
+            <input type="checkbox" class="check round done-check" aria-label="Mark “{{ t.title }}” complete"
+                   hx-post="{% url 'field_update' 'task' t.pk %}" hx-vals='js:{_field: "status", status: event.target.checked ? "Completed" : "Not Started"}' hx-swap="none">
+            <div class="t">
+              <a href="?open=task:{{ t.pk }}" hx-get="{% url 'drawer' 'task' t.pk %}" hx-target="#drawer-body" hx-push-url="false">{{ t.title }}</a>
+              <div class="meta">
+                <span class="pill s-{{ t.priority|lower }}">{{ t.priority }}</span>
+                <span class="pill {{ t.status|status_class }}">{{ t.status }}</span>
+                {% if t.due_date %}<span class="{% if t.is_overdue %}late{% endif %}">{% if t.is_overdue %}Overdue · {% endif %}due {{ t.due_date|naturalday:"j M" }}</span>{% endif %}
+              </div>
+            </div>
+            {% avatar t.owner %}
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <div class="empty"><span class="script">All clear!</span>Nothing urgent — go and look at ideas.</div>
+    {% endif %}
+    {% if follow_ups %}
+      <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)">
+        <div class="label" style="margin-bottom:8px">💌 Enquiry follow-ups</div>
+        {% for s in follow_ups %}
+          <div class="row small" style="justify-content:space-between;padding:4px 0">
+            <a href="{{ s.get_absolute_url }}"><b>{{ s.name }}</b></a>
+            <span class="{% if s.follow_up_due %}late{% endif %}" style="{% if s.follow_up_due %}color:var(--blush-deep);font-weight:700{% endif %}">{% if s.follow_up_due %}Chase {% endif %}{{ s.next_follow_up|naturalday:"j M" }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="span-5 stack rise rise-4">
+    <div class="paper-note">
+      <h3>{% if phase == "Now" %}Right now{% else %}This season · {{ phase }}{% endif %}</h3>
+      <ul class="checklist">
+        {% for item in phase_items %}
+          <li>{% edit item "done" cls="burst-on-check" %}<span>{{ item.title }}</span></li>
+        {% empty %}
+          <li class="faint">Nothing on the timeline for now.</li>
+        {% endfor %}
+      </ul>
+      <a class="small" href="{% url 'timeline' %}" style="display:inline-block;margin-top:10px">See the whole timeline →</a>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><h3>👥 Guests</h3><a class="more" href="{% url 'guests' %}">Guest list →</a></div>
+      {% if guest.people %}
+        <div class="kv" style="margin:0">
+          <div><div class="label">On the list</div><div class="v">{{ guest.people }}</div></div>
+          <div><div class="label">Confirmed</div><div class="v">{{ guest.confirmed }}</div></div>
+          <div><div class="label">From Canada 🇨🇦</div><div class="v">{{ guest.canada }}</div></div>
+          <div><div class="label">Need a bed</div><div class="v">{{ guest.accommodation }}</div></div>
+        </div>
+      {% else %}
+        <p class="muted" style="margin:0">No-one on the list yet. <a href="#" hx-get="{% url 'create' 'guest' %}" hx-target="#drawer-body">Add the first guest</a>.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card span-7 rise rise-4">
+    <div class="card-title"><h2>🌿 Latest ideas</h2><a class="more" href="{% url 'ideas' %}">Idea board →</a></div>
+    <div class="grid grid-4" style="gap:12px">
+      {% for idea in ideas %}
+        <a href="{% url 'ideas' %}?open=idea:{{ idea.pk }}" class="stat" style="padding:0;overflow:hidden">
+          {% if idea.image %}<img src="{{ idea.image.get_absolute_url }}" alt="" style="width:100%;height:90px;object-fit:cover;display:block">{% endif %}
+          <div style="padding:10px 12px">
+            <div class="script" style="color:var(--gold);font-size:16px;line-height:1">{{ idea.category }}</div>
+            <div style="font-family:var(--f-display);font-size:16px;color:var(--forest-deep)">{{ idea.title }}</div>
+          </div>
+        </a>
+      {% empty %}
+        <p class="muted">No ideas yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card span-5 rise rise-5">
+    <div class="card-title"><h3>Recently</h3></div>
+    <ul class="activity">
+      {% for o in recent %}
+        <li>
+          {% if o.updated_by %}{% avatar o.updated_by %}{% else %}<span class="avatar" style="background:var(--line-strong)">·</span>{% endif %}
+          <span class="what">{{ o }}</span>
+          <span class="faint small nowrap">{{ o.updated_at|naturaltime }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+</div>
+{% endblock %}

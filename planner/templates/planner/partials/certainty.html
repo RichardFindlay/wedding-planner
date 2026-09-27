@@ -1,0 +1,1 @@
+{% if i.excluded %}<span class="pill s-not-needed cert">Not needed</span>{% elif i.certainty == "Booked" %}<span class="conf cert">Booked</span>{% elif i.certainty == "Quoted" %}<span class="est quoted cert">Quote</span>{% else %}<span class="est cert">Estimate</span>{% endif %}

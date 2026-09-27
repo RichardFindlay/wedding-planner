@@ -1,0 +1,15 @@
+{% load planner_tags %}
+<div class="scenario-switch" id="scenarios" {% if oob %}hx-swap-oob="true"{% endif %}>
+  {% for s in scenario_cards %}
+    <button type="button" class="scenario {% if s.key == scenario %}on{% endif %}"
+            hx-post="{% url 'field_update' 'settings' wedding.pk %}" hx-vals='{"_field": "scenario", "scenario": "{{ s.key }}"}' hx-swap="none"
+            aria-pressed="{% if s.key == scenario %}true{% else %}false{% endif %}">
+      <div class="nm">{{ s.label }}</div>
+      <div class="amt">{{ s.target|money }}</div>
+      <div class="desc">{{ s.desc }}</div>
+      <div class="fit {% if s.diff < 0 %}over{% else %}ok{% endif %}">
+        {% if s.diff < 0 %}Current plan is {{ s.diff|absval|money }} over{% else %}{{ s.diff|money }} spare on current plan{% endif %}
+      </div>
+    </button>
+  {% endfor %}
+</div>

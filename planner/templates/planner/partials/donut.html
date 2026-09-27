@@ -1,0 +1,16 @@
+<div class="donut-wrap">
+  <div class="donut" role="img" aria-label="{{ progress.pct }}% planned: {{ progress.done }} completed, {{ progress.started }} in progress, {{ progress.todo }} not started">
+    <svg viewBox="0 0 132 132">
+      <circle cx="66" cy="66" r="54" fill="none" stroke="#ece3d2" stroke-width="16"/>
+      {% for s in progress.segments %}
+        <circle cx="66" cy="66" r="54" fill="none" stroke="{{ s.colour }}" stroke-width="16" stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.offset }}" stroke-linecap="butt"><title>{{ s.label }}: {{ s.n }}</title></circle>
+      {% endfor %}
+    </svg>
+    <div class="centre"><b>{{ progress.pct }}%</b><small>planned</small></div>
+  </div>
+  <ul class="donut-legend">
+    <li><i style="background:#2f5a43"></i><b>{{ progress.done }}</b> Completed</li>
+    <li><i style="background:#86a98a"></i><b>{{ progress.started }}</b> In progress</li>
+    <li><i style="background:#dce6d6;box-shadow:inset 0 0 0 1px #c7d3c0"></i><b>{{ progress.todo }}</b> Not started</li>
+  </ul>
+</div>

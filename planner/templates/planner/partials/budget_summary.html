@@ -1,0 +1,33 @@
+{% load planner_tags humanize %}
+<div class="card" id="budget-summary" {% if oob %}hx-swap-oob="true"{% endif %}>
+  <div class="row" style="justify-content:space-between;align-items:flex-end">
+    <div>
+      <div class="label">Working target</div>
+      <div class="big-num">{{ target|money }}</div>
+    </div>
+    <div style="text-align:right">
+      <div class="label">Remaining</div>
+      <div class="big-num {% if headroom < 0 %}neg{% endif %}" style="font-size:28px">{{ headroom|money }}</div>
+    </div>
+  </div>
+  <div class="kv" style="grid-template-columns:repeat(4,1fr)">
+    <div><div class="label">Planned</div><div class="v">{{ totals.forecast|money }}</div></div>
+    <div><div class="label">Committed</div><div class="v">{{ totals.committed|money }}</div></div>
+    <div><div class="label">Spent</div><div class="v">{{ totals.paid|money }}</div></div>
+    <div><div class="label">Still to pay</div><div class="v">{{ totals.remaining|money }}</div></div>
+  </div>
+  {% include "planner/partials/budget_bar.html" with b=budget_self %}
+  {% if unallocated %}
+    <p class="small faint" style="margin:12px 0 0">
+      {% if unallocated > 0 %}{{ unallocated|money }} of the {{ target|money }} isn’t allocated to a category yet — a handy buffer.{% else %}Category allowances add up to {{ unallocated|absval|money }} more than the target.{% endif %}
+    </p>
+  {% endif %}
+  {% if upcoming_payments %}
+    <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)">
+      <div class="label" style="margin-bottom:6px">Payments coming up</div>
+      {% for i in upcoming_payments %}
+        <div class="row small" style="justify-content:space-between;padding:3px 0"><span>{{ i.item }}</span><span class="nowrap">{{ i.remaining|money }} · {{ i.payment_due|naturalday:"j M" }}</span></div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

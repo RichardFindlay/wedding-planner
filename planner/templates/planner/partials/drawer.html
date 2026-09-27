@@ -1,0 +1,59 @@
+{% load planner_tags humanize %}
+<div class="drawer-head">
+  <div>
+    <span class="eyebrow">{{ kind.label }}</span>
+    <h2>{{ obj }}</h2>
+  </div>
+  <button type="button" class="close-x" data-close-drawer aria-label="Close">×</button>
+</div>
+<div class="drawer-body">
+  {% if slug == "idea" %}
+    <div style="margin-bottom:18px">
+      {% if obj.image %}
+        <img src="{{ obj.image.get_absolute_url }}" alt="" style="width:100%;border-radius:14px;display:block">
+        <form hx-post="{% url 'idea_image' obj.pk %}" hx-target="#drawer-body" style="margin-top:8px;text-align:right">
+          <input type="hidden" name="remove" value="1">
+          <button class="btn btn-sm btn-ghost" type="submit">Remove picture</button>
+        </form>
+      {% else %}
+        <form hx-post="{% url 'idea_image' obj.pk %}" hx-target="#drawer-body" hx-encoding="multipart/form-data">
+          <label class="upload-drop" data-upload data-autosubmit>
+            <input type="file" name="upload" accept="image/*">
+            <span class="txt">📷 Add a photo or screenshot — or paste one here</span>
+          </label>
+          <img class="upload-preview" alt="">
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="fields">
+    {% for f in fields %}
+      <div class="{% if f == 'notes' or f == 'note' or f == 'content' or f == 'title' or f == 'name' or f == 'item' or f == 'link' or f == 'decision' or f == 'text' %}wide{% endif %}">
+        {% edit obj f label=True rows=5 %}
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if slug == "idea" %}
+    <div style="margin-top:18px" class="row">
+      <span class="label">Loved by</span>
+      {% include "planner/partials/hearts.html" with idea=obj %}
+    </div>
+  {% endif %}
+  {% if slug == "budgetitem" %}
+    <p class="small faint" style="margin-top:16px">
+      The budget uses the <b>booked cost</b> if there is one, otherwise the <b>quote</b>, otherwise the <b>estimate</b>.
+    </p>
+  {% endif %}
+</div>
+<div class="drawer-foot">
+  <span class="edited">
+    {% if obj.updated_by %}{% avatar obj.updated_by %} Last edited by {{ obj.updated_by.first_name }} {{ obj.updated_at|naturaltime }}{% endif %}
+  </span>
+  <div class="row">
+    <button class="btn btn-sm btn-danger" hx-post="{% url 'delete' slug obj.pk %}" hx-swap="none"
+            hx-confirm="Delete “{{ obj }}”? This can’t be undone.">Delete</button>
+    <button class="btn btn-sm btn-primary" type="button" data-close-drawer>Done</button>
+  </div>
+</div>

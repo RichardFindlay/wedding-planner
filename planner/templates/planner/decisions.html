@@ -1,0 +1,47 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Decisions{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">so we don’t go round in circles</span>
+    <h1>⚖️ Decisions log</h1>
+    <p>Once something’s decided, write it down here. “Provisional” means we’re leaning that way but waiting on something.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'decision' %}" hx-target="#drawer-body">+ Add decision</button>
+  </div>
+</header>
+
+<div class="stack">
+  {% for d in decisions %}
+    <article class="card decision-card {{ d.status|status_class }}" id="decision-{{ d.pk }}">
+      <div class="decision">
+        <div>
+          <div class="label">Decision</div>
+          {% edit d "decision" cls="q" %}
+        </div>
+        <div>
+          <div class="label">Answer</div>
+          {% edit d "answer" cls="a" placeholder="Not decided yet" %}
+        </div>
+        <div>
+          <div class="label">Status</div>
+          {% edit d "status" %}
+        </div>
+        <div>
+          <div class="label">When</div>
+          {% edit d "decided_on" %}
+        </div>
+        <div class="notes">{% edit d "notes" rows=1 placeholder="Why / what we're waiting on…" %}</div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:4px">
+        <span class="edited">{% if d.updated_by %}{% avatar d.updated_by %} {{ d.updated_by.first_name }} · {{ d.updated_at|naturaltime }}{% endif %}</span>
+        <button class="btn btn-sm btn-ghost" hx-post="{% url 'delete' 'decision' d.pk %}" hx-target="closest article" hx-swap="delete" hx-confirm="Remove this decision?">Remove</button>
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty"><span class="script">No decisions yet</span>Add the first one.</div>
+  {% endfor %}
+</div>
+{% endblock %}

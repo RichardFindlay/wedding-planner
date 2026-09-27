@@ -1,0 +1,13 @@
+<span class="hearts" id="hearts-{{ idea.pk }}">
+  {% if user.username == "richard" %}
+    <button type="button" class="heart richard {% if idea.loved_by_richard %}on{% endif %} {% if request.method == 'POST' and idea.loved_by_richard %}pop{% endif %}"
+            hx-post="{% url 'idea_love' idea.pk %}" hx-target="#hearts-{{ idea.pk }}" hx-swap="outerHTML"
+            title="{% if idea.loved_by_richard %}You love this{% else %}Love this{% endif %}" aria-pressed="{{ idea.loved_by_richard|yesno:'true,false' }}">♥<small>R</small></button>
+    <span class="heart static denver {% if idea.loved_by_denver %}on{% endif %}" title="{% if idea.loved_by_denver %}Denver loves this{% else %}Denver hasn't hearted this yet{% endif %}">♥<small>D</small></span>
+  {% else %}
+    <span class="heart static richard {% if idea.loved_by_richard %}on{% endif %}" title="{% if idea.loved_by_richard %}Richard loves this{% else %}Richard hasn't hearted this yet{% endif %}">♥<small>R</small></span>
+    <button type="button" class="heart denver {% if idea.loved_by_denver %}on{% endif %} {% if request.method == 'POST' and idea.loved_by_denver %}pop{% endif %}"
+            hx-post="{% url 'idea_love' idea.pk %}" hx-target="#hearts-{{ idea.pk }}" hx-swap="outerHTML"
+            title="{% if idea.loved_by_denver %}You love this{% else %}Love this{% endif %}" aria-pressed="{{ idea.loved_by_denver|yesno:'true,false' }}">♥<small>D</small></button>
+  {% endif %}
+</span>

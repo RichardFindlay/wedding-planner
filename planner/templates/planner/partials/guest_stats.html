@@ -1,0 +1,10 @@
+<div class="stat-strip" id="guest-stats" {% if oob %}hx-swap-oob="true"{% endif %}>
+  <a class="stat {% if not flag and not rsvp %}on{% endif %}" href="?"><div class="n">{{ stats.people }}</div><div class="l">On the list</div></a>
+  <a class="stat {% if rsvp == 'Invited' %}on{% endif %}" href="?rsvp=Invited"><div class="n">{{ stats.invited }}</div><div class="l">Invited</div></a>
+  <a class="stat {% if rsvp == 'Confirmed' %}on{% endif %}" href="?rsvp=Confirmed"><div class="n">{{ stats.confirmed }}</div><div class="l">Confirmed</div></a>
+  <a class="stat {% if rsvp == 'Declined' %}on{% endif %}" href="?rsvp=Declined"><div class="n">{{ stats.declined }}</div><div class="l">Declined</div></a>
+  <a class="stat flag {% if flag == 'from_canada' %}on{% endif %}" href="?flag=from_canada"><div class="n">{{ stats.canada }}</div><div class="l">🇨🇦 From Canada</div></a>
+  <a class="stat {% if flag == 'accommodation' %}on{% endif %}" href="?flag=accommodation"><div class="n">{{ stats.accommodation }}</div><div class="l">🛏️ Need a bed</div></a>
+  <a class="stat {% if flag == 'transport' %}on{% endif %}" href="?flag=transport"><div class="n">{{ stats.transport }}</div><div class="l">🚌 Need transport</div></a>
+  <a class="stat {% if flag == 'dietary' %}on{% endif %}" href="?flag=dietary"><div class="n">{{ stats.dietary }}</div><div class="l">🥗 Dietary needs</div></a>
+</div>

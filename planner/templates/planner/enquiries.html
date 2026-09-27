@@ -1,0 +1,74 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Enquiries{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">so nothing slips through</span>
+    <h1>💌 Enquiries</h1>
+    <p>Every email, call and reply across venues and suppliers — and who we need to chase.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'enquiry' %}" hx-target="#drawer-body">+ Log enquiry</button>
+  </div>
+</header>
+
+<div class="grid grid-2" style="margin-bottom:22px;align-items:start">
+  <section class="card">
+    <div class="card-title"><h3>⏰ Chase now</h3></div>
+    {% for s in due %}
+      <div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line)">
+        <div><a href="{{ s.get_absolute_url }}"><b>{{ s.name }}</b></a> <span class="pill {{ s.status|status_class }}">{{ s.status }}</span></div>
+        <span style="color:var(--blush-deep);font-weight:700" class="small">{{ s.next_follow_up|naturalday:"j M" }}</span>
+      </div>
+    {% empty %}
+      <p class="muted" style="margin:0">Nobody to chase today 🌿</p>
+    {% endfor %}
+    {% if upcoming %}
+      <div class="label" style="margin:16px 0 6px">Coming up</div>
+      {% for s in upcoming %}
+        <div class="row small" style="justify-content:space-between;padding:4px 0">
+          <a href="{{ s.get_absolute_url }}">{{ s.name }}</a><span class="faint">{{ s.next_follow_up|naturalday:"j M" }}</span>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-title"><h3>📨 Still to contact</h3></div>
+    {% for s in to_contact %}
+      <div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)">
+        <a href="{{ s.get_absolute_url }}"><b>{{ s.name }}</b></a>
+        <a class="btn btn-sm" href="{{ s.get_absolute_url }}">Log contact →</a>
+      </div>
+    {% empty %}
+      <p class="muted" style="margin:0">Everyone on the list has been contacted.</p>
+    {% endfor %}
+    {% if waiting %}
+      <div class="label" style="margin:16px 0 6px">Waiting — no follow-up date set</div>
+      {% for s in waiting %}<div class="small" style="padding:3px 0"><a href="{{ s.get_absolute_url }}">{{ s.name }}</a></div>{% endfor %}
+    {% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-title"><h2>The whole story</h2></div>
+  {% if log %}
+    <ol class="tl">
+      {% for e in log %}
+        <li class="k-{{ e.kind|slugify }}">
+          <div class="when">
+            <b>{{ e.date|date:"j M Y" }}</b>
+            {% if e.created_by %}{% avatar e.created_by %}{% endif %}
+            <button class="btn btn-sm btn-ghost" style="height:24px;padding:0 8px" hx-get="{% url 'drawer' 'enquiry' e.pk %}" hx-target="#drawer-body">Edit</button>
+          </div>
+          <div class="kind">{{ e.kind }} · <a class="subject" href="{{ e.subject.get_absolute_url }}">{{ e.subject }}</a></div>
+          <div class="body">{{ e.content }}</div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <div class="empty"><span class="script">Nothing logged yet</span>Log your first enquiry from a venue or supplier page.</div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}{{ supplier.name }}{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="{% url 'suppliers' %}">← All suppliers</a></div>
+<header class="detail-head">
+  <div>
+    <span class="role-tag">{{ supplier.category }}</span>
+    {% edit supplier "name" cls="detail-title" %}
+    <div class="chips-line">
+      <label class="field"><span>Status</span>{% edit supplier "status" %}</label>
+      <label class="field"><span>Our date?</span>{% edit supplier "availability" %}</label>
+      <label class="field"><span>Our rating</span>{% edit supplier "rating" %}</label>
+      <label class="field"><span>Category</span>{% edit supplier "category" %}</label>
+    </div>
+  </div>
+  <div>{% edit supplier "booked" label="Booked 🎉" cls="burst-on-check" %}</div>
+</header>
+
+<div class="detail-grid">
+  <div class="stack">
+    <section class="card">
+      <div class="card-title"><h3>💷 Price</h3></div>
+      <div class="price-box">
+        <div class="e">{% edit supplier "quote_estimate" label="Our estimate £" placeholder="?" %}<small class="est" style="margin-top:4px">Estimate — a guess</small></div>
+        <div class="q">{% edit supplier "quote" label="Confirmed quote £" placeholder="Not yet" %}<small class="conf" style="margin-top:4px">From them</small></div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-title"><h3>📞 Contact</h3>{% if supplier.website %}<a class="more" href="{{ supplier.website }}" target="_blank" rel="noopener">Visit website ↗</a>{% endif %}</div>
+      <div class="fields">
+        <div class="wide">{% edit supplier "website" label=True %}</div>
+        <div class="wide">{% edit supplier "contact" label=True placeholder="Name, email, phone…" %}</div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-title"><h3>📝 Notes</h3></div>
+      {% edit supplier "notes" rows=6 placeholder="Style, what's included, first impressions…" %}
+    </section>
+    <div class="row" style="justify-content:space-between">
+      <span class="edited">{% if supplier.updated_by %}{% avatar supplier.updated_by %} Last edited by {{ supplier.updated_by.first_name }} {{ supplier.updated_at|naturaltime }}{% endif %}</span>
+      <form hx-post="{% url 'delete' 'supplier' supplier.pk %}" hx-swap="none" hx-confirm="Delete {{ supplier.name }} and its enquiry history?">
+        <input type="hidden" name="from" value="detail">
+        <button class="btn btn-sm btn-danger" type="submit">Delete supplier</button>
+      </form>
+    </div>
+  </div>
+  {% include "planner/partials/enquiry_timeline.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Budget{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">pounds &amp; pennies</span>
+    <h1>💷 Budget</h1>
+    <p>Pick a scenario to plan against. Everything starts as an <span class="est">Estimate</span> until a <span class="est quoted">Quote</span> comes in, then <span class="conf">Booked</span>.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'budgetitem' %}" hx-target="#drawer-body">+ Add expense</button>
+  </div>
+</header>
+
+{% include "planner/partials/budget_scenarios.html" %}
+
+<div class="grid" style="grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);margin:18px 0;align-items:start" id="budget-top">
+  {% include "planner/partials/budget_summary.html" %}
+  {% include "planner/partials/budget_cats.html" %}
+</div>
+
+<div class="table-wrap">
+  <table class="sheet" style="min-width:1080px">
+    <thead>
+      <tr>
+        <th>Supplier / item</th>
+        <th class="num">Estimate</th>
+        <th class="num">Quote</th>
+        <th class="num">Booked</th>
+        <th class="num">Deposit</th>
+        <th class="num">Paid</th>
+        <th class="num">Left to pay</th>
+        <th>Payment due</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr class="group-row">
+          <td colspan="6">{{ r.category.icon }} {{ r.category.name }}
+            <span class="small faint" style="font-family:var(--f-body)">· allowance
+              {% if scenario == "low" %}{% edit r.category "alloc_low" cls="ctl-num" %}{% elif scenario == "high" %}{% edit r.category "alloc_high" cls="ctl-num" %}{% else %}{% edit r.category "alloc_medium" cls="ctl-num" %}{% endif %}
+            </span>
+          </td>
+          <td class="num" colspan="2" id="bc-{{ r.category.pk }}-sub" style="font-family:var(--f-body);font-size:13px">
+            {% include "planner/partials/budget_cat_sub.html" %}
+          </td>
+          <td colspan="2" style="text-align:right">
+            <button class="btn btn-sm btn-ghost" hx-get="{% url 'create' 'budgetitem' %}?category={{ r.category.pk }}" hx-target="#drawer-body">+ Add</button>
+          </td>
+        </tr>
+        {% for i in r.items %}
+          <tr class="{% if i.excluded %}faint{% endif %}">
+            <td style="min-width:320px">
+              <div class="row item-cell" style="flex-wrap:nowrap;gap:4px">
+                {% edit i "item" %}
+                <span id="bi-{{ i.pk }}-cert">{% include "planner/partials/certainty.html" %}</span>
+              </div>
+            </td>
+            <td class="num" style="width:110px">{% edit i "estimate" placeholder="—" %}</td>
+            <td class="num" style="width:110px">{% edit i "quote" placeholder="—" %}</td>
+            <td class="num" style="width:110px">{% edit i "booked_cost" placeholder="—" %}</td>
+            <td class="num" style="width:100px">{% edit i "deposit" placeholder="—" %}</td>
+            <td class="num" style="width:100px">{% edit i "paid" placeholder="—" %}</td>
+            <td class="num remaining-cell" id="bi-{{ i.pk }}-remaining">{{ i.remaining|money }}</td>
+            <td style="width:150px">{% edit i "payment_due" %}</td>
+            <td>{% edit i "status" %}</td>
+            <td class="tight">
+              <button class="btn btn-sm btn-ghost open-link" hx-get="{% url 'drawer' 'budgetitem' i.pk %}" hx-target="#drawer-body">Notes</button>
+            </td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>Total planned</td>
+        <td colspan="5"></td>
+        <td class="num" id="budget-total-remaining">{{ totals.remaining|money }}</td>
+        <td colspan="3" class="num" id="budget-total-forecast">{{ totals.forecast|money }} of {{ target|money }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<details class="card" style="margin-top:18px">
+  <summary style="cursor:pointer"><b>Edit scenario targets &amp; allowances</b> <span class="small faint">— compare how each category is split across Low / Medium / Higher</span></summary>
+  <div class="row" style="margin:16px 0;gap:18px">
+    {% edit wedding "target_low" label=True %}
+    {% edit wedding "target_medium" label=True %}
+    {% edit wedding "target_high" label=True %}
+  </div>
+  <div class="table-wrap" style="box-shadow:none">
+    <table class="sheet">
+      <thead><tr><th>Category</th><th class="num">Low</th><th class="num">Medium</th><th class="num">Higher</th><th></th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.category.icon }} {{ r.category.name }}</td>
+            <td class="num">{% edit r.category "alloc_low" %}</td>
+            <td class="num">{% edit r.category "alloc_medium" %}</td>
+            <td class="num">{% edit r.category "alloc_high" %}</td>
+            <td class="tight"><button class="btn btn-sm btn-ghost open-link" hx-get="{% url 'drawer' 'budgetcategory' r.category.pk %}" hx-target="#drawer-body">Rename</button></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr><td>Allocated</td>{% for s in scenario_cards %}<td class="num">{{ s.allocated|money }} <span class="faint">/ {{ s.target|money }}</span></td>{% endfor %}<td></td></tr></tfoot>
+    </table>
+  </div>
+  <button class="btn btn-sm" style="margin-top:12px" hx-get="{% url 'create' 'budgetcategory' %}" hx-target="#drawer-body">+ Add category</button>
+</details>
+{% endblock %}

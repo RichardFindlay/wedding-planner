@@ -1,0 +1,80 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}{{ venue.name }}{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="{% url 'venues' %}">← All venues</a></div>
+<header class="detail-head">
+  <div>
+    <span class="role-tag">{{ venue.role }} venue</span>
+    {% edit venue "name" cls="detail-title" %}
+    <div class="chips-line">
+      <label class="field"><span>Status</span>{% edit venue "status" %}</label>
+      <label class="field"><span>{{ wedding.wedding_date|date:"j M" }} available?</span>{% edit venue "availability" %}</label>
+      <label class="field"><span>Our rating</span>{% edit venue "rating" %}</label>
+      <label class="field"><span>Used for</span>{% edit venue "role" %}</label>
+    </div>
+  </div>
+  <div class="stack" style="gap:8px;align-items:flex-end">
+    {% if venue.role != "Reception" %}
+      {% if wedding.ceremony_venue_id == venue.pk %}<span class="pill s-booked">🌲 Our ceremony venue</span>
+      {% else %}<button class="btn btn-sm" hx-post="{% url 'field_update' 'settings' wedding.pk %}" hx-vals='{"_field": "ceremony_venue", "ceremony_venue": "{{ venue.pk }}"}' hx-swap="none">Make this our ceremony venue</button>{% endif %}
+    {% endif %}
+    {% if venue.role != "Ceremony" %}
+      {% if wedding.reception_venue_id == venue.pk %}<span class="pill s-booked">🍽️ Our reception venue</span>
+      {% else %}<button class="btn btn-sm" hx-post="{% url 'field_update' 'settings' wedding.pk %}" hx-vals='{"_field": "reception_venue", "reception_venue": "{{ venue.pk }}"}' hx-swap="none">Make this our reception venue</button>{% endif %}
+    {% endif %}
+  </div>
+</header>
+
+<div class="detail-grid">
+  <div class="stack">
+    <section class="card">
+      <div class="card-title"><h3>💷 Price</h3></div>
+      <div class="price-box">
+        <div class="e">{% edit venue "price_estimate" label="Our estimate £" placeholder="?" %}<small class="est" style="margin-top:4px">Estimate — a guess</small></div>
+        <div class="q">{% edit venue "price_quote" label="Confirmed quote £" placeholder="Not yet" %}<small class="conf" style="margin-top:4px">From the venue</small></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h3>📋 The details</h3></div>
+      <div class="fields">
+        {% edit venue "location" label=True %}
+        {% edit venue "venue_type" label=True %}
+        {% edit venue "capacity" label=True placeholder="How many people?" %}
+        {% edit venue "closing_time" label=True placeholder="e.g. midnight" %}
+        {% edit venue "distance_from_perth" label=True %}
+        {% edit venue "distance_from_ceremony" label=True %}
+        {% edit venue "byob" label=True %}
+        {% edit venue "outdoor_space" label=True %}
+        {% edit venue "rain_backup" label=True %}
+        {% edit venue "accommodation" label=True %}
+        <div class="wide">{% edit venue "catering" label=True %}</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h3>📞 Contact</h3>{% if venue.website %}<a class="more" href="{{ venue.website }}" target="_blank" rel="noopener">Visit website ↗</a>{% endif %}</div>
+      <div class="fields">
+        <div class="wide">{% edit venue "website" label=True %}</div>
+        <div class="wide">{% edit venue "contact" label=True placeholder="Name, email, phone…" %}</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h3>📝 Notes</h3></div>
+      {% edit venue "notes" rows=6 placeholder="Impressions, questions to ask, things we loved…" %}
+    </section>
+
+    <div class="row" style="justify-content:space-between">
+      <span class="edited">{% if venue.updated_by %}{% avatar venue.updated_by %} Last edited by {{ venue.updated_by.first_name }} {{ venue.updated_at|naturaltime }}{% endif %}</span>
+      <form hx-post="{% url 'delete' 'venue' venue.pk %}" hx-swap="none" hx-confirm="Delete {{ venue.name }} and its enquiry history?">
+        <input type="hidden" name="from" value="detail">
+        <button class="btn btn-sm btn-danger" type="submit">Delete venue</button>
+      </form>
+    </div>
+  </div>
+
+  {% include "planner/partials/enquiry_timeline.html" %}
+</div>
+{% endblock %}

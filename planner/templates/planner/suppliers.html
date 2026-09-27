@@ -1,0 +1,77 @@
+{% extends "planner/base.html" %}
+{% load planner_tags humanize %}
+{% block title %}Suppliers{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">the people who make it happen</span>
+    <h1>📞 Suppliers</h1>
+    <p>Photographers, caterers, ceilidh bands and the rest. Use “Compare” to line up options in the same category.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'supplier' %}{% if category %}?category={{ category|urlencode }}{% endif %}" hx-target="#drawer-body">+ Add supplier</button>
+  </div>
+</header>
+
+<div class="filters">
+  <div class="seg">
+    <a href="?view=cards{% if category %}&category={{ category|urlencode }}{% endif %}" class="{% if view != 'compare' %}on{% endif %}">Cards</a>
+    <a href="?view=compare{% if category %}&category={{ category|urlencode }}{% endif %}" class="{% if view == 'compare' %}on{% endif %}">Compare</a>
+  </div>
+  <a class="chip {% if not category %}on{% endif %}" href="?view={{ view }}">All</a>
+  {% for c, _ in categories %}<a class="chip {% if category == c %}on{% endif %}" href="?view={{ view }}&category={{ c|urlencode }}">{{ c }}</a>{% endfor %}
+</div>
+
+{% for cat, items in groups %}
+  <section style="margin-bottom:26px">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h2>{{ cat }} <span class="faint small" style="font-family:var(--f-body)">{{ items|length }}</span></h2>
+      <button class="btn btn-sm btn-ghost" hx-get="{% url 'create' 'supplier' %}?category={{ cat|urlencode }}" hx-target="#drawer-body">+ Add {{ cat|lower }}</button>
+    </div>
+    {% if view == "compare" %}
+      <div class="table-wrap">
+        <table class="sheet compare">
+          <thead><tr><th></th>{% for s in items %}<th><a class="h" href="{{ s.get_absolute_url }}">{{ s.name }}</a></th>{% endfor %}</tr></thead>
+          <tbody>
+            <tr><td class="label">Status</td>{% for s in items %}<td>{% edit s "status" %}</td>{% endfor %}</tr>
+            <tr><td class="label">Our date?</td>{% for s in items %}<td>{% edit s "availability" %}</td>{% endfor %}</tr>
+            <tr><td class="label">Price</td>{% for s in items %}<td>{% include "planner/partials/price_line.html" with est=s.quote_estimate quote=s.quote %}</td>{% endfor %}</tr>
+            <tr><td class="label">Rating</td>{% for s in items %}<td>{% edit s "rating" %}</td>{% endfor %}</tr>
+            <tr><td class="label">Booked</td>{% for s in items %}<td>{% edit s "booked" %}</td>{% endfor %}</tr>
+            <tr><td class="label">Notes</td>{% for s in items %}<td>{% edit s "notes" rows=3 %}</td>{% endfor %}</tr>
+            <tr><td class="label">Website</td>{% for s in items %}<td>{% if s.website %}<a href="{{ s.website }}" target="_blank" rel="noopener">{{ s.website|cut:"https://"|cut:"http://"|cut:"www."|truncatechars:28 }}</a>{% else %}—{% endif %}</td>{% endfor %}</tr>
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="grid grid-3">
+        {% for s in items %}
+          <article class="venue-card" style="cursor:default">
+            {% if s.booked %}<span class="chosen">booked!</span>{% endif %}
+            <span class="role-tag">{{ s.category }}</span>
+            <h4><a href="{{ s.get_absolute_url }}">{{ s.name }}</a></h4>
+            <div class="price">{% include "planner/partials/price_line.html" with est=s.quote_estimate quote=s.quote %}</div>
+            <div class="row" style="gap:6px">
+              {% edit s "status" %}
+              <span class="pill {{ s.availability|status_class }}">📅 {{ s.availability }}</span>
+            </div>
+            <div class="row small" style="justify-content:space-between">
+              {% if s.next_follow_up %}<span class="{% if s.follow_up_due %}follow{% else %}faint{% endif %}">{% if s.follow_up_due %}⏰ Chase {% else %}Follow up {% endif %}{{ s.next_follow_up|naturalday:"j M" }}</span>{% else %}<span></span>{% endif %}
+              {% if s.rating %}<span class="hearts-static">{{ s.get_rating_display }}</span>{% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+{% empty %}
+  <div class="empty">
+    <span class="script">No suppliers yet</span>
+    Start with a photographer or two — hit “+ Add supplier”.
+  </div>
+{% endfor %}
+
+{% if empty_categories and groups %}
+  <p class="small faint">Nothing yet for: {{ empty_categories|join:", " }}.</p>
+{% endif %}
+{% endblock %}

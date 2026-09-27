@@ -1,0 +1,5 @@
+{% load planner_tags %}<span class="mini-bar" style="width:120px" aria-hidden="true">
+  <span style="width:{{ progress.done|pct:progress.total }}%;background:#2f5a43"></span>
+  <span style="width:{{ progress.started|pct:progress.total }}%;background:#86a98a"></span>
+</span>
+<span><b>{{ progress.pct }}%</b> planned · {{ progress.done }} done · {{ progress.started }} in progress · {{ progress.todo }} to start</span>

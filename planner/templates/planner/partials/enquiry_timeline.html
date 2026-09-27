@@ -1,0 +1,44 @@
+{% load planner_tags humanize %}
+<section class="card">
+  <div class="card-title"><h2>💌 Enquiry history</h2></div>
+
+  <div class="follow-banner {% if subject.follow_up_due %}due{% endif %}">
+    <span>{% if subject.follow_up_due %}⏰ <b>Time to chase!</b>{% else %}📌 Next follow-up{% endif %}</span>
+    {% edit subject "next_follow_up" %}
+    {% if subject.next_follow_up %}<button class="btn btn-sm btn-ghost" hx-post="{% url 'field_update' subject_slug subject.pk %}" hx-vals='{"_field": "next_follow_up", "next_follow_up": ""}' hx-swap="none" hx-on::after-request="plannerRefresh()">Clear</button>{% endif %}
+  </div>
+
+  <form class="log-form" hx-post="{% url 'create' 'enquiry' %}" hx-swap="none">
+    <input type="hidden" name="{{ subject_slug }}" value="{{ subject.pk }}">
+    <input type="hidden" name="_hidden" value="venue"><input type="hidden" name="_hidden" value="supplier">
+    <div class="row">
+      <input type="date" name="date" value="{% now 'Y-m-d' %}" aria-label="Date" style="max-width:170px">
+      <select name="kind" aria-label="What happened">
+        {% for k, v in enquiry_kinds %}<option value="{{ k }}" {% if k == "Enquiry sent" %}selected{% endif %}>{{ v }}</option>{% endfor %}
+      </select>
+    </div>
+    <textarea name="content" placeholder="Paste their email or jot down what was said…" aria-label="Details"></textarea>
+    <div class="row" style="justify-content:space-between">
+      <span class="small faint">Logging “sent” sets a follow-up for a week later.</span>
+      <button class="btn btn-primary btn-sm" type="submit">Log it</button>
+    </div>
+  </form>
+
+  {% if subject.enquiries.exists %}
+    <ol class="tl">
+      {% for e in subject.enquiries.all %}
+        <li class="k-{{ e.kind|slugify }}" id="enquiry-{{ e.pk }}">
+          <div class="when">
+            <b>{{ e.date|date:"j M Y" }}</b>
+            {% if e.created_by %}{% avatar e.created_by %}{% endif %}
+            <button class="btn btn-sm btn-ghost" style="height:24px;padding:0 8px" hx-get="{% url 'drawer' 'enquiry' e.pk %}" hx-target="#drawer-body">Edit</button>
+          </div>
+          <div class="kind">{{ e.kind }}</div>
+          <div class="body">{{ e.content }}</div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <div class="empty" style="padding:20px"><span class="script">Nothing logged yet</span>Record the first contact above.</div>
+  {% endif %}
+</section>

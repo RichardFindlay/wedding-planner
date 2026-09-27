@@ -1,0 +1,10 @@
+{% load planner_tags %}{% with i=obj %}
+<span id="bi-{{ i.pk }}-cert" hx-swap-oob="true">{% include "planner/partials/certainty.html" %}</span>
+<template><td class="num remaining-cell" id="bi-{{ i.pk }}-remaining" hx-swap-oob="true">{{ i.remaining|money }}</td></template>
+{% endwith %}
+{% for r in rows %}{% if r.category.pk == obj.category_id %}<template><td class="num" colspan="2" id="bc-{{ r.category.pk }}-sub" hx-swap-oob="true" style="font-family:var(--f-body);font-size:13px">{% include "planner/partials/budget_cat_sub.html" %}</td></template>{% endif %}{% endfor %}
+<template><td class="num" id="budget-total-remaining" hx-swap-oob="true">{{ totals.remaining|money }}</td></template>
+<template><td colspan="3" class="num" id="budget-total-forecast" hx-swap-oob="true">{{ totals.forecast|money }} of {{ target|money }}</td></template>
+{% include "planner/partials/budget_scenarios.html" %}
+{% include "planner/partials/budget_summary.html" %}
+{% include "planner/partials/budget_cats.html" %}

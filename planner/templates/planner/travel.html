@@ -1,0 +1,63 @@
+{% extends "planner/base.html" %}
+{% load planner_tags %}
+{% block title %}Travel{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">from Canada to Perthshire</span>
+    <h1>✈️ Travel &amp; accommodation</h1>
+    <p>Where people can stay and how they’ll get here. Tick “recommend to guests” to build the list we’ll eventually share.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'travel' %}" hx-target="#drawer-body">+ Add option</button>
+  </div>
+</header>
+
+<div class="stat-strip">
+  <a class="stat flag" href="{% url 'guests' %}?flag=from_canada"><div class="n">{{ canada_people }}</div><div class="l">🇨🇦 Guests from Canada</div></a>
+  <a class="stat" href="{% url 'guests' %}?flag=accommodation"><div class="n">{{ canada_rooms }}</div><div class="l">of them need a bed</div></a>
+</div>
+
+{% for section, items in groups %}
+  <section style="margin-bottom:26px">
+    <h2 style="margin-bottom:10px">{% if section == "Staying" %}🛏️{% else %}🚆{% endif %} {{ section }}</h2>
+    <div class="table-wrap">
+      <table class="sheet stackable">
+        <thead><tr><th>Name</th><th>Type</th><th>Area</th><th>Approx. price</th><th>Distance</th><th>Rooms</th><th>Status</th><th title="Recommend to guests">For guests</th><th></th></tr></thead>
+        <tbody>
+          {% for t in items %}
+            <tr>
+              <td class="m-full" style="min-width:200px">{% edit t "name" cls="task-title" %}{% if t.link %}<a class="small" style="padding-left:8px" href="{{ t.link }}" target="_blank" rel="noopener">link ↗</a>{% endif %}</td>
+              <td data-label="Type">{% edit t "kind" %}</td>
+              <td data-label="Area">{% edit t "area" %}</td>
+              <td data-label="Price">{% edit t "price" placeholder="—" %}</td>
+              <td data-label="Distance">{% edit t "distance" placeholder="—" %}</td>
+              <td data-label="Rooms">{% edit t "rooms" placeholder="—" %}</td>
+              <td data-label="Status">{% edit t "status" %}</td>
+              <td data-label="For guests" class="tight">{% edit t "for_guests" %}</td>
+              <td class="tight"><button class="btn btn-sm btn-ghost open-link" hx-get="{% url 'drawer' 'travel' t.pk %}" hx-target="#drawer-body">Notes</button></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% empty %}
+  <div class="empty"><span class="script">Nothing yet</span>Add hotels, cottages, airports and transport ideas.</div>
+{% endfor %}
+
+<div class="grid grid-2" style="margin-top:8px">
+  <div class="paper-note">
+    <h3>Perth or Dunkeld?</h3>
+    <p class="small muted" style="margin:6px 0 0">Staying in Dunkeld / Birnam keeps everyone close to the Hermitage and reception; Perth has more choice and better onward trains. Log options in both areas and compare prices here.</p>
+  </div>
+  <div class="paper-note" style="transform:rotate(0.5deg)">
+    <h3>Things to sort</h3>
+    <ul class="checklist small">
+      <li>✈️ Airport → Perth: train, coach, or hire car?</li>
+      <li>🚕 Taxis / minibus between ceremony &amp; reception</li>
+      <li>🌙 Getting everyone home at the end of the night</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

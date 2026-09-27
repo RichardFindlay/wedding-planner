@@ -1,0 +1,35 @@
+{% extends "planner/base.html" %}
+{% load planner_tags %}
+{% block title %}Things we love{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">our compass</span>
+    <h1>💚 Love · Avoid · Consider</h1>
+    <p>When we’re unsure about something, check it against these.</p>
+  </div>
+</header>
+
+<div class="notes-cols">
+  {% for kind, label, notes in groups %}
+    <div class="notes-col {{ kind }}">
+      <div class="paper-note">
+        <h3>{{ label }}</h3>
+        <ul class="note-list">
+          {% for n in notes %}
+            <li id="note-{{ n.pk }}">
+              {% edit n "text" %}
+              <button class="icon-btn" hx-post="{% url 'delete' 'note' n.pk %}" hx-target="closest li" hx-swap="delete" aria-label="Remove">×</button>
+            </li>
+          {% endfor %}
+        </ul>
+        <form class="inline-add" hx-post="{% url 'create' 'note' %}" hx-swap="none">
+          <input type="hidden" name="kind" value="{{ kind }}">
+          <input type="hidden" name="_hidden" value="kind">
+          <input name="text" placeholder="+ add another" aria-label="Add to {{ label }}" required>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

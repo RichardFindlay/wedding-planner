@@ -1,0 +1,7 @@
+{% if q|length >= 2 %}
+  {% for r in results %}
+    <a href="{{ r.url }}" role="option"><span class="kind">{{ r.label }}</span><span>{{ r.title|truncatechars:80 }}</span></a>
+  {% empty %}
+    <div class="none">Nothing found for “{{ q }}”</div>
+  {% endfor %}
+{% endif %}

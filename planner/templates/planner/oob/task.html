@@ -1,0 +1,5 @@
+{% load planner_tags %}{% with t=obj %}
+<template><td class="tight" id="task-{{ t.pk }}-check" hx-swap-oob="true">{% include "planner/partials/task_check.html" %}</td></template>
+<template><td data-label="Status" id="task-{{ t.pk }}-status" hx-swap-oob="true">{% edit t "status" %}</td></template>
+<div class="row small muted" id="task-progress" hx-swap-oob="true">{% include "planner/partials/task_progress_line.html" %}</div>
+{% endwith %}

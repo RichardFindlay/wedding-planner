@@ -1,0 +1,101 @@
+{% load static planner_tags %}<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5efe3">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="R & D">
+  <title>{% block title %}Our Wedding Plan{% endblock %} · Richard & Denver</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌲%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Figtree:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'planner/css/app.css' %}">
+  <script src="{% static 'planner/vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'planner/vendor/Sortable.min.js' %}" defer></script>
+  <script src="{% static 'planner/js/app.js' %}" defer></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="monogram" href="{% url 'dashboard' %}">
+      <span class="names">Richard <em>&amp;</em> Denver</span>
+      <span class="sub">Our wedding plan</span>
+    </a>
+    <nav class="nav" aria-label="Sections">
+      {% for name, label, icon in nav %}
+        <a href="{% url name %}" class="{% if current == name %}active{% endif %}{% if name == 'venues' and current == 'venue_detail' %} active{% endif %}{% if name == 'suppliers' and current == 'supplier_detail' %} active{% endif %}">
+          <span class="ico" aria-hidden="true">{{ icon }}</span>{{ label }}
+        </a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-foot">
+      <div class="countdown-mini">{{ wedding.days_to_go }}<small>days to go</small></div>
+      <form method="post" action="{% url 'logout' %}" style="margin-top:14px">
+        {% csrf_token %}
+        <button class="who-btn" type="submit" title="Switch person">{% avatar user "lg" %} <span>{{ user.first_name }} · <u>switch</u></span></button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="main-col">
+    <header class="topbar">
+      <a class="mobile-mark" href="{% url 'dashboard' %}">R <em>&amp;</em> D</a>
+      <div class="search">
+        <input type="search" name="q" placeholder="Search venues, guests, ideas, tasks…" autocomplete="off" aria-label="Search everything"
+               hx-get="{% url 'search' %}" hx-trigger="input changed delay:220ms, focus[this.value.length>1]" hx-target="#search-results">
+        <div id="search-results" class="search-results" role="listbox"></div>
+      </div>
+      <div class="topbar-actions">
+        <span id="save-state" class="save-state" aria-live="polite"></span>
+        <div class="quick-add">
+          <button class="btn btn-primary" type="button" data-menu="qa-menu">+ Add</button>
+          <div class="menu" id="qa-menu">{% include "planner/partials/quick_add_items.html" %}</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main" id="main">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+{# ---- mobile chrome ---- #}
+<nav class="tabbar" aria-label="Sections">
+  {% for name, label, icon in mobile_nav %}
+    <a href="{% url name %}" class="{% if current == name %}active{% endif %}{% if name == 'venues' and current == 'venue_detail' %} active{% endif %}"><span class="ico">{{ icon }}</span>{{ label }}</a>
+  {% endfor %}
+  <button type="button" data-more><span class="ico">☰</span>More</button>
+</nav>
+<button class="fab" type="button" data-menu="fab-menu" aria-label="Add something">+</button>
+<div class="menu fab-menu" id="fab-menu">{% include "planner/partials/quick_add_items.html" %}</div>
+
+<div class="more-sheet" id="more-sheet">
+  <div class="backdrop" data-close-more></div>
+  <div class="sheet-panel">
+    <div class="row" style="justify-content:space-between">
+      <h2>Everything</h2>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+        <button class="who-btn" type="submit">{% avatar user "lg" %} <span>{{ user.first_name }} · <u>switch</u></span></button>
+      </form>
+    </div>
+    <div class="grid-nav">
+      {% for name, label, icon in nav %}
+        <a href="{% url name %}" class="{% if current == name %}active{% endif %}"><span class="ico">{{ icon }}</span>{{ label }}</a>
+      {% endfor %}
+    </div>
+    <p class="faint small" style="text-align:center;margin:16px 0 0">{{ wedding.days_to_go }} days until {{ wedding.wedding_date|date:"j F Y" }}</p>
+  </div>
+</div>
+
+<div class="drawer-root" id="drawer-root" aria-hidden="true">
+  <div class="drawer-backdrop" data-close-drawer></div>
+  <div class="drawer" role="dialog" aria-modal="true" id="drawer-body"></div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

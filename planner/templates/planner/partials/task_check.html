@@ -1,0 +1,2 @@
+<input type="checkbox" class="check round done-check" {% if t.is_done %}checked{% endif %} aria-label="Mark “{{ t.title }}” complete"
+       hx-post="{% url 'field_update' 'task' t.pk %}" hx-vals='js:{_field: "status", status: event.target.checked ? "Completed" : "Not Started"}' hx-swap="none">

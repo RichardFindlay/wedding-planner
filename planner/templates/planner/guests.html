@@ -1,0 +1,66 @@
+{% extends "planner/base.html" %}
+{% load planner_tags %}
+{% block title %}Guests{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">our favourite people</span>
+    <h1>👥 Guests</h1>
+    <p>Headcounts include plus-ones and children. Tick boxes save straight away.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'guest' %}" hx-target="#drawer-body">+ Add guest</button>
+  </div>
+</header>
+
+{% include "planner/partials/guest_stats.html" %}
+
+<div class="filters">
+  <a class="chip {% if not side %}on{% endif %}" href="?{% if flag %}flag={{ flag }}{% endif %}">Everyone</a>
+  <a class="chip {% if side == 'Richard' %}on{% endif %}" href="?side=Richard">{% avatar "richard" %} Richard’s side <span class="n">{{ stats.richard }}</span></a>
+  <a class="chip {% if side == 'Denver' %}on{% endif %}" href="?side=Denver">{% avatar "denver" %} Denver’s side <span class="n">{{ stats.denver }}</span></a>
+  <a class="chip {% if side == 'Both' %}on{% endif %}" href="?side=Both">{% avatar "both" %} Mutual</a>
+  <a class="chip {% if flag == 'plus_one' %}on{% endif %}" href="?flag=plus_one">+1s</a>
+</div>
+
+{% if guests %}
+<div class="table-wrap">
+  <table class="sheet stackable" style="min-width:1100px">
+    <thead>
+      <tr>
+        <th>Name</th><th>Side</th><th>Family / group</th><th>Relationship</th>
+        <th title="Ceremony">Cer.</th><th title="Reception">Rec.</th><th title="Evening">Eve.</th>
+        <th>RSVP</th><th>+1</th><th>Kids</th><th>Dietary</th>
+        <th title="Travelling from Canada">🇨🇦</th><th title="Needs accommodation">🛏️</th><th title="Needs transport">🚌</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in guests %}
+        <tr>
+          <td class="m-full" style="min-width:170px">{% edit g "name" cls="task-title" %}</td>
+          <td data-label="Side">{% edit g "side" %}</td>
+          <td data-label="Group">{% edit g "group" placeholder="—" %}</td>
+          <td data-label="Relationship">{% edit g "relationship" placeholder="—" %}</td>
+          <td data-label="Ceremony" class="tight">{% edit g "ceremony" %}</td>
+          <td data-label="Reception" class="tight">{% edit g "reception" %}</td>
+          <td data-label="Evening" class="tight">{% edit g "evening" %}</td>
+          <td data-label="RSVP">{% edit g "rsvp" %}</td>
+          <td data-label="+1" class="tight">{% edit g "plus_one" %}</td>
+          <td data-label="Kids" style="width:70px">{% edit g "children" %}</td>
+          <td data-label="Dietary">{% edit g "dietary" placeholder="—" %}</td>
+          <td data-label="Canada" class="tight">{% edit g "from_canada" %}</td>
+          <td data-label="Bed" class="tight">{% edit g "accommodation" %}</td>
+          <td data-label="Transport" class="tight">{% edit g "transport" %}</td>
+          <td class="tight"><button class="btn btn-sm btn-ghost open-link" hx-get="{% url 'drawer' 'guest' g.pk %}" hx-target="#drawer-body">More</button></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="empty">
+    <span class="script">{% if side or flag or rsvp %}No-one matches{% else %}The list starts here{% endif %}</span>
+    {% if side or flag or rsvp %}Try a different filter.{% else %}Add guests one at a time — you can fill in RSVPs, dietary needs and travel later.{% endif %}
+  </div>
+{% endif %}
+{% endblock %}

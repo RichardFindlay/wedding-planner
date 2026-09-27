@@ -1,0 +1,56 @@
+{% extends "planner/base.html" %}
+{% load planner_tags %}
+{% block title %}Ideas{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <span class="eyebrow">our scrapbook</span>
+    <h1>🌿 Ideas &amp; inspiration</h1>
+    <p>Pin anything — a photo, a screenshot, a link, a half-formed thought. Heart the ones you love; if you both do, it glows.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" hx-get="{% url 'create' 'idea' %}{% if category %}?category={{ category|urlencode }}{% endif %}" hx-target="#drawer-body">+ Add idea</button>
+  </div>
+</header>
+
+<div class="filters">
+  <a class="chip {% if not category and not loved and not tag %}on{% endif %}" href="?">Everything</a>
+  <a class="chip {% if loved %}on{% endif %}" href="?loved=1">♥ Loved</a>
+  {% for c, n in categories %}
+    <a class="chip {% if category == c %}on{% endif %}" href="?category={{ c|urlencode }}">{{ c }}{% if n %} <span class="n">{{ n }}</span>{% endif %}</a>
+  {% endfor %}
+  {% if tag %}<a class="chip on" href="?">#{{ tag }} ×</a>{% endif %}
+</div>
+
+{% if ideas %}
+  <div class="ideas">
+    {% for idea in ideas %}
+      <article class="idea {% if not idea.image %}textonly{% endif %} {% if idea.hearts == 2 %}loved-both{% endif %}" id="idea-{{ idea.pk }}">
+        {% if idea.image %}
+          <button type="button" style="all:unset;cursor:pointer;display:block" hx-get="{% url 'drawer' 'idea' idea.pk %}" hx-target="#drawer-body">
+            <img src="{{ idea.image.get_absolute_url }}" alt="{{ idea.title }}" loading="lazy" width="{{ idea.image.width }}" height="{{ idea.image.height }}">
+          </button>
+        {% endif %}
+        <div class="inner">
+          <span class="cat">{{ idea.category }}</span>
+          <h3><button type="button" hx-get="{% url 'drawer' 'idea' idea.pk %}" hx-target="#drawer-body">{{ idea.title }}</button></h3>
+          {% if idea.note %}<p>{{ idea.note|truncatechars:240 }}</p>{% endif %}
+          {% if idea.link %}<a class="link" href="{{ idea.link }}" target="_blank" rel="noopener">🔗 {{ idea.link|cut:"https://"|cut:"http://"|cut:"www."|truncatechars:40 }}</a>{% endif %}
+          <div class="foot">
+            <div class="tags">{% for t in idea.tag_list %}<a class="tag" href="?tag={{ t|urlencode }}">#{{ t }}</a>{% endfor %}</div>
+            <div class="row" style="gap:4px;flex-wrap:nowrap">
+              {% if idea.created_by %}{% avatar idea.created_by %}{% endif %}
+              {% include "planner/partials/hearts.html" %}
+            </div>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty">
+    <span class="script">A blank page…</span>
+    {% if category or loved or tag %}Nothing here yet — add the first one!{% else %}Pin your first idea.{% endif %}
+  </div>
+{% endif %}
+{% endblock %}
